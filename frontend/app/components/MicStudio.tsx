@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { ArrowLeft, History, Trash2, Video, VideoOff, Volume2, VolumeX, X } from 'lucide-react';
+import { ArrowLeft, Copy, Check, History, Trash2, Video, VideoOff, Volume2, VolumeX, X } from 'lucide-react';
 import MicrophoneRecorder from '../components/MicrophoneRecorder';
 import LanguagePicker from '../components/LanguagePicker';
 import { sameText, tailSentences } from '../components/text';
@@ -21,12 +21,14 @@ interface MicStudioProps {
   // Si se indica, todo lo transcripto se PUBLICA en esa sesión (sala).
   // Si es null, funciona standalone como /mic (sin publicar).
   sessionId?: string | null;
+  // Nombre de la room (solo transmitir): para armar la URL de OBS.
+  room?: string | null;
   // Título y destino del botón volver (por defecto, home de salas)
   title?: string;
   backHref?: string;
 }
 
-export default function MicStudio({ sessionId = null, title = 'Transcripción de Micrófono', backHref = '/' }: MicStudioProps) {
+export default function MicStudio({ sessionId = null, room = null, title = 'Transcripción de Micrófono', backHref = '/' }: MicStudioProps) {
   const [transcripts, setTranscripts] = useState<TranscriptData[]>([]);
   const [previewOrig, setPreviewOrig] = useState('');
   const [previewTrans, setPreviewTrans] = useState('');
@@ -66,6 +68,32 @@ export default function MicStudio({ sessionId = null, title = 'Transcripción de
   // Dock de transcripción: autoscroll abajo cuando llega texto nuevo,
   // sin barra de scroll visible.
   const dockRef = useRef<HTMLDivElement | null>(null);
+  // URL lista para OBS (arriba-derecha, chiquita, clic = copiar).
+  // En transmitir apunta al viewer estable por sala; en mic, al propio mic.
+  const [obsCopied, setObsCopied] = useState(false);
+  const [origin, setOrigin] = useState('');
+  useEffect(() => {
+    try {
+      setOrigin(window.location.origin);
+    } catch { /* ignorar */ }
+  }, []);
+  const obsUrl = origin
+    ? (room ? `${origin}/ver/${encodeURIComponent(room)}?overlay=1` : `${origin}/mic?overlay=1`)
+    : '';
+  const obsShort = obsUrl
+    ? (room ? `ver/${room}?overlay=1` : `mic?overlay=1`)
+    : '…';
+
+  const copyObsUrl = async () => {
+    if (!obsUrl) return;
+    try {
+      await navigator.clipboard.writeText(obsUrl);
+      setObsCopied(true);
+      setTimeout(() => setObsCopied(false), 2000);
+    } catch (e) {
+      console.error('No se pudo copiar:', e);
+    }
+  };
   // Overlay para OBS (?overlay=1): solo subtítulo en cajita negra, sin
   // cámara ni controles. Vale para /mic y /transmitir (el anfitrión lo
   // usa directo sin abrir el viewer).
@@ -623,6 +651,15 @@ export default function MicStudio({ sessionId = null, title = 'Transcripción de
       </button>
 
       <div className="top-right-bar">
+        <button
+          className="obs-chip"
+          onClick={copyObsUrl}
+          title={obsUrl || 'URL para OBS (Fuente de navegador)'}
+          aria-label="Copiar URL para OBS"
+        >
+          {obsCopied ? <Check size={13} /> : <Copy size={13} />}
+          <span>{obsCopied ? '¡Copiada!' : obsShort}</span>
+        </button>
         <LanguagePicker kind="speak" value={speechLang} onChange={setSpeechLang} />
         <LanguagePicker kind="target" value={targetLang} onChange={setTargetLang} />
         <button

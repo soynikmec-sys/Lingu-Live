@@ -48,6 +48,7 @@ export default function TransmitirPage() {
   return (
     <MicStudio
       sessionId={sessionId}
+      room={room}
       title={`Transmitiendo en ${room}`}
     />
   );

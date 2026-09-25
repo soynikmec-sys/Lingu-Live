@@ -529,6 +529,33 @@ body {
   color: #333;
 }
 
+/* Chip OBS: URL lista para Fuente de navegador, clic = copiar */
+.obs-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(0, 0, 0, 0.55);
+  color: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+  padding: 0.45rem 0.7rem;
+  font-size: 0.72rem;
+  font-family: monospace;
+  cursor: pointer;
+  max-width: 220px;
+  transition: background 0.2s;
+}
+
+.obs-chip:hover {
+  background: rgba(0, 0, 0, 0.75);
+}
+
+.obs-chip span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* Picker de idiomas con buscador */
 .lang-picker {
   position: relative;
