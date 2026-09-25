@@ -7,7 +7,7 @@ import { useState, useRef, useEffect } from 'react';
 // por comparación de secuencias de landmarks (MediaPipe, on-device).
 // Lo detectado entra al flujo normal como transcripción (se traduce igual).
 
-const PHRASES = ['hola', 'buenos días'];
+const PHRASES = ['hola', 'chau'];
 const SAMPLES_NEEDED = 3;
 const RECORD_MS = 4000;
 const SEQ_LEN = 24;
