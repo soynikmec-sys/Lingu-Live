@@ -26,6 +26,10 @@ export default function SessionPage() {
   const [sessionInfo, setSessionInfo] = useState<any>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  // Modo overlay para OBS (?overlay=1): fondo transparente, solo el
+  // subtítulo actual en cajita negra. Se lee de la URL en el cliente
+  // (sin useSearchParams para no exigir Suspense en el build).
+  const [overlay, setOverlay] = useState(false);
   // Audio dual del directo: original (bajito, en vivo) + traducida (TTS).
   const [audioOn, setAudioOn] = useState(false);
   const audioOnRef = useRef(false);
@@ -124,15 +128,25 @@ export default function SessionPage() {
   };
 
   useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('overlay') === '1') {
+        setOverlay(true);
+        document.body.style.background = 'transparent';
+      }
+    } catch { /* ignorar */ }
     fetchSessionInfo();
     connectWebSocket();
-    
+
     return () => {
       if (wsRef.current) {
         wsRef.current.close();
       }
       try { ttsAudioRef.current?.pause(); } catch { /* ignorar */ }
       actxRef.current?.close().catch(() => {});
+      try {
+        document.body.style.background = '';
+      } catch { /* ignorar */ }
     };
   }, [sessionId]);
 
@@ -224,6 +238,30 @@ export default function SessionPage() {
   const handleBack = () => {
     window.location.href = '/';
   };
+
+  // Overlay OBS: solo subtítulo actual en cajita negra, fondo transparente.
+  if (overlay) {
+    const current = preview
+      ? { translatedText: preview, originalText: null as string | null }
+      : transcripts.length > 0
+        ? transcripts[transcripts.length - 1]
+        : null;
+    return (
+      <div className="overlay-root">
+        {current && (current.translatedText || current.originalText) ? (
+          <div className="overlay-box">
+            <div className="overlay-main">
+              {current.translatedText || current.originalText}
+            </div>
+            {current.originalText &&
+              current.originalText.trim() !== (current.translatedText ?? '').trim() && (
+                <div className="overlay-original">{current.originalText}</div>
+              )}
+          </div>
+        ) : null}
+      </div>
+    );
+  }
 
   return (
     <div className="container">
