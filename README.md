@@ -32,7 +32,7 @@ Proyecto para la **Nerdearla Vibeathon 2026** (24-25 de septiembre de 2026).
 - **👁️ Ver** (`/[sessionId]`): la audiencia lee subtítulos en tiempo real (texto + opcionalmente audio original y traducido).
 - **➕ Crear salas** desde la home con nombre e idioma (si hay alguien transmitiendo, el botón se apaga y solo se puede ver).
 - **🌍 35 idiomas** con buscador (ES/EN fijos arriba): hablás en uno, se traduce a otro.
-- **🔊 Lectura en voz alta**: botón parlante que lee cada traducción con voz masculina (edge-tts, gratis) o voz del sistema.
+- **🔊 Lectura en voz alta**: botón parlante que lee cada traducción con voz masculina o voz del sistema.
 - **📺 Overlay para OBS**: `?overlay=1` en la URL del viewer = subtítulos en cajita negra listos para quemar en el stream.
 
 ---
@@ -55,7 +55,7 @@ cd backend && npm install && cp .env.example .env && npm start &
 cd ../frontend && npm install && npm run build && npm run start
 ```
 
-Abrí `http://localhost:3000`, apretá **Probar micrófono**, hablá en español (modo local, $0).
+Abrí `http://localhost:3000`, apretá **Probar micrófono** y hablá en español.
 Para traducción en vivo ES→EN necesitás la API key (abajo). Para ver una sala con audiencia,
 abrí `/transmitir/room-a` en una ventana y `/ver/room-a` en otra.
 
@@ -124,7 +124,7 @@ La URL estable por nombre de sala (no se rompe al reiniciar):
 2. En OBS: **Agregar → Fuente de navegador** con esta URL:
    `http://localhost:3000/ver/room-a?overlay=1`
    (también vale `/transmitir/room-a?overlay=1` y `/mic?overlay=1`).
-3. Tamaño sugerido: **1920×250**, posicionada abajo (franja inferior).
+3. En OBS: **Agregar → Fuente de navegador** con esa URL y posicioná la fuente abajo.
 4. Salen los subtítulos en cajita negra (traducción grande + original chico), actualizándose solos, con fondo transparente. En silencio se ve transparente (normal).
 5. Si ves la página completa en vez de la cajita: te falta el `?overlay=1` al final, o clic derecho en la fuente → Actualizar (OBS cachea).
 
@@ -165,4 +165,4 @@ Glosario técnico: `glossary.json` (inyectado como contexto). Verificar con `npm
 
 ## 🙌 Créditos
 
-Desarrollado por **Nico** para la Nerdearla Vibeathon 2026, con herramientas abiertas de Google (Gemini Live API) y MediaPipe como referencia.
+Desarrollado por **Nico** para la Nerdearla Vibeathon 2026, con herramientas abiertas de Google (Gemini Live API).
