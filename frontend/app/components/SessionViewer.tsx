@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
+import { ArrowLeft, History, Volume2, VolumeX, X, Trash2 } from 'lucide-react';
+import { sameText, tailSentences } from './text';
 
 interface TranscriptData {
   type: string;
@@ -22,6 +24,10 @@ export default function SessionViewer({ sessionId }: { sessionId: string }) {
   const [sessionInfo, setSessionInfo] = useState<any>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const dockRef = useRef<HTMLDivElement | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  // Frame JPEG de la cámara del anfitrión (fondo, espejo como en el mic).
+  const [videoFrame, setVideoFrame] = useState<string | null>(null);
   // Modo overlay para OBS (?overlay=1): fondo transparente, solo el
   // subtítulo actual en cajita negra.
   const [overlay, setOverlay] = useState(false);
@@ -151,6 +157,8 @@ export default function SessionViewer({ sessionId }: { sessionId: string }) {
     if (containerRef.current) {
       containerRef.current.scrollTop = containerRef.current.scrollHeight;
     }
+    const el = dockRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
   }, [transcripts, preview]);
 
   const fetchSessionInfo = async () => {
@@ -203,6 +211,9 @@ export default function SessionViewer({ sessionId }: { sessionId: string }) {
             if (queueRef.current.length > 40) queueRef.current.splice(0, queueRef.current.length - 40);
             pumpOriginal();
           }
+        } else if (data.type === 'video-frame' && typeof data.data === 'string') {
+          // Cámara del anfitrión (fondo, espejo como en el mic)
+          setVideoFrame(data.data);
         } else if (data.type === 'error') {
           setError(data.error || 'Error en la conexión');
         } else if (data.type === 'connected') {
@@ -259,28 +270,55 @@ export default function SessionViewer({ sessionId }: { sessionId: string }) {
     );
   }
 
+  // Espejo del anfitrión: misma disposición (video fondo, título
+  // arriba-izquierda, dock abajo, historial lateral), sin botones de
+  // mic/cámara/modo. Solo queda el audio dual (original + traducida).
+  const latest = transcripts.length > 0 ? transcripts[transcripts.length - 1] : null;
+  const history = [...transcripts].reverse();
+  const title = sessionInfo?.room
+    ? `Viendo ${sessionInfo.room}${sessionInfo?.hasBroadcaster ? ' ● EN VIVO' : ''}`
+    : 'Subtítulos en vivo';
+
+  const handleClearHistory = () => {
+    setTranscripts(prev => (prev.length > 0 ? [prev[prev.length - 1]] : []));
+  };
+
   return (
-    <div className="container">
-      <button className="back-button" onClick={handleBack}>
-        ← Volver a sesiones
+    <>
+    {videoFrame && (
+      <img
+        src={videoFrame}
+        alt=""
+        aria-hidden
+        className="stage-fullscreen-img"
+      />
+    )}
+    <div className={videoFrame ? 'container mic-overlay' : 'container'}>
+      <button
+        className="back-fab"
+        onClick={handleBack}
+        aria-label="Volver a sesiones"
+        title="Volver a sesiones"
+      >
+        <ArrowLeft size={20} />
       </button>
 
-      <div className="header">
-        <h1>🎙️ Subtítulos en vivo</h1>
-        <p>
-          {sessionInfo?.room || 'Cargando...'}
-          {sessionInfo?.hasBroadcaster && ' ● EN VIVO'}
-          {connected && ' ✅ Conectado'}
-          {!connected && ' ⏳ Conectando...'}
-        </p>
+      <div className="mic-titlebar">
+        <span className="mic-title">{title}</span>
+        <span className="mic-status">{connected ? 'Conectado' : 'Conectando...'}</span>
+      </div>
+
+      <div className="top-right-bar">
         <button
-          className="back-button"
-          onClick={handleToggleAudio}
-          style={{ marginTop: '0.75rem' }}
-          aria-label={audioOn ? 'Apagar audio del directo' : 'Escuchar directo'}
-          title="Original bajito + traducción en voz alta"
+          className="history-fab inline"
+          onClick={() => setHistoryOpen(!historyOpen)}
+          aria-label={historyOpen ? 'Cerrar historial' : 'Abrir historial'}
+          title={historyOpen ? 'Cerrar historial' : 'Abrir historial'}
         >
-          {audioOn ? '🔊 Audio on' : '🔇 Audio off'}
+          {historyOpen ? <X size={20} /> : <History size={20} />}
+          {transcripts.length > 0 && (
+            <span className="history-badge">{transcripts.length}</span>
+          )}
         </button>
       </div>
 
@@ -290,39 +328,87 @@ export default function SessionViewer({ sessionId }: { sessionId: string }) {
         </div>
       )}
 
-      <div className="subtitle-container" ref={containerRef}>
-        {transcripts.length === 0 && !preview ? (
-          <div className="subtitle-text">
-            Esperando transcripción...
-          </div>
-        ) : (
-          transcripts.map((transcript, index) => (
-            <div key={index} style={{ marginBottom: '1.5rem' }}>
-              {transcript.originalText && (
-                <div className="subtitle-text original">
-                  {transcript.originalText}
-                </div>
-              )}
-              <div className="subtitle-text">
-                {transcript.translatedText}
-              </div>
-              <div style={{
-                color: '#64748b',
-                fontSize: '0.8rem',
-                marginTop: '0.5rem',
-                textAlign: 'center'
-              }}>
-                {transcript.timestamp && new Date(transcript.timestamp).toLocaleTimeString()}
-              </div>
+      <div className="live-dock" ref={dockRef}>
+        {latest ? (
+          <>
+            <div className="live-current">
+              {tailSentences(latest.translatedText)}
             </div>
-          ))
+            {latest.originalText && !sameText(latest) && (
+              <div className="live-current original">
+                {tailSentences(latest.originalText)}
+              </div>
+            )}
+            {latest.timestamp && (
+              <div className="live-timestamp">
+                {new Date(latest.timestamp).toLocaleTimeString()}
+              </div>
+            )}
+          </>
+        ) : (
+          !(preview) && (
+            <div className="live-placeholder">
+              {connected ? 'Esperando transcripción...' : 'Conectando...'}
+            </div>
+          )
         )}
         {preview && (
-          <div className="subtitle-text" style={{ opacity: 0.6 }}>
-            {preview}…
+          <div className="live-next">
+            <div className="live-current">
+              {`${preview}…`}
+            </div>
           </div>
         )}
       </div>
+
+      <button
+        onClick={handleToggleAudio}
+        className={`aud-fab ${audioOn ? 'on' : 'off'}`}
+        aria-label={audioOn ? 'Apagar audio del directo' : 'Escuchar directo'}
+        title="Original bajito + traducción en voz alta"
+      >
+        {audioOn ? <Volume2 size={26} /> : <VolumeX size={26} />}
+      </button>
+
+      {historyOpen && (
+        <aside className="history-panel">
+          <div className="history-header">
+            <h2>Historial ({transcripts.length})</h2>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              {history.length > 0 && (
+                <button className="history-clear" onClick={handleClearHistory} title="Limpiar historial">
+                  <Trash2 size={16} />
+                </button>
+              )}
+              <button className="history-clear" onClick={() => setHistoryOpen(false)} title="Cerrar">
+                <X size={16} />
+              </button>
+            </div>
+          </div>
+          <div className="history-list">
+            {history.length === 0 ? (
+              <div className="history-empty">
+                Acá van a aparecer las transcripciones anteriores
+              </div>
+            ) : (
+              history.map((transcript, index) => (
+                <div key={index} className="history-item">
+                  <div>{transcript.translatedText}</div>
+                  {transcript.originalText && !sameText(transcript) && (
+                    <div className="history-original">
+                      {transcript.originalText}
+                    </div>
+                  )}
+                  {transcript.timestamp && (
+                    <time>{new Date(transcript.timestamp).toLocaleTimeString()}</time>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        </aside>
+      )}
     </div>
+    </>
   );
 }

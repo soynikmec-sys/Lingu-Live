@@ -137,6 +137,14 @@ export async function registerBroadcastRoutes(fastify) {
               try { await liveSession?.close(); } catch { /* ignorar */ }
               liveSession = null;
             }
+          } else if (data.type === 'video-frame' && typeof data.data === 'string') {
+            // Frame JPEG de la cámara del anfitrión → viewers (máx 500KB).
+            if (data.data.length > 500000) return;
+            sessionManager.broadcastToSession(sessionId, {
+              type: 'video-frame',
+              data: data.data,
+              sessionId
+            });
           } else if (data.type === 'publish' && data.text) {
             // Mismo-idioma: el broadcaster ya lo resolvió en local (gratis,
             // sin Gemini). Solo se republica tal cual a los viewers.

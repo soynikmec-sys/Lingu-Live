@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, History, Trash2, Video, VideoOff, Volume2, VolumeX, X } from 'lucide-react';
 import MicrophoneRecorder from '../components/MicrophoneRecorder';
 import LanguagePicker from '../components/LanguagePicker';
+import { sameText, tailSentences } from '../components/text';
 
 interface TranscriptData {
   type: string;
@@ -236,22 +237,6 @@ export default function MicStudio({ sessionId = null, title = 'Transcripción de
   // incluida la actual.
   const latest = transcripts.length > 0 ? transcripts[transcripts.length - 1] : null;
   const history = [...transcripts].reverse();
-
-  // En modo demo (o hablando ya en español) original y traducido son el
-  // mismo texto: mostrarlo una sola vez para que no parezca duplicado.
-  const sameText = (t: TranscriptData) =>
-    (t.originalText ?? '').trim() !== '' &&
-    t.originalText!.trim() === (t.translatedText ?? '').trim();
-
-  // El Live acumula párrafos largos sin partir: en pantalla se muestran
-  // solo las últimas N oraciones (el historial guarda el texto completo).
-  const tailSentences = (text: string | undefined, n = 2) => {
-    const t = (text ?? '').trim();
-    if (!t) return '';
-    const parts = t.match(/[^.!?…]+[.!?…]+["”)]?|\S[^.!?…]*$/g);
-    if (!parts || parts.length <= n) return t;
-    return parts.slice(-n).join(' ').trim();
-  };
 
   const handleClearHistory = () => {
     setTranscripts(prev => (prev.length > 0 ? [prev[prev.length - 1]] : []));
@@ -545,6 +530,36 @@ export default function MicStudio({ sessionId = null, title = 'Transcripción de
       videoRef.current.srcObject = streamRef.current;
     }
   }, [cameraOn]);
+
+  // Transmitiendo con cámara: mandar fotogramas JPEG (~2.5/s, 480px) a la
+  // sala para que la audiencia vea al anfitrión. Camino rápido (no LiveKit).
+  const frameCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  useEffect(() => {
+    if (!cameraOn || !sessionId) return;
+    if (!frameCanvasRef.current) {
+      frameCanvasRef.current = document.createElement('canvas');
+    }
+    const timer = setInterval(() => {
+      try {
+        const video = videoRef.current;
+        if (!video || video.readyState < 2) return;
+        if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return;
+        const canvas = frameCanvasRef.current!;
+        const w = 480;
+        const h = Math.round((video.videoHeight / video.videoWidth) * w) || 270;
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        ctx.drawImage(video, 0, 0, w, h);
+        const url = canvas.toDataURL('image/jpeg', 0.6);
+        wsRef.current.send(JSON.stringify({ type: 'video-frame', data: url }));
+      } catch (e) {
+        console.error('Error enviando frame:', e);
+      }
+    }, 400);
+    return () => clearInterval(timer);
+  }, [cameraOn, sessionId]);
 
   const handleToggleCamera = () => {
     if (cameraOn) stopCamera();

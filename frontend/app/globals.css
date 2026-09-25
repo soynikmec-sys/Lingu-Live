@@ -286,6 +286,50 @@ body {
   z-index: 0;
 }
 
+/* Frame JPEG del anfitrión en viewers: mismo fondo espejado */
+.stage-fullscreen-img {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  transform: scaleX(-1);
+  z-index: 0;
+}
+
+/* Audio dual en viewers: círculo abajo al centro como el mic */
+.aud-fab {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+}
+
+.aud-fab:hover {
+  transform: translateX(-50%) scale(1.06);
+}
+
+.aud-fab.off {
+  background: #6b7280;
+  color: white;
+}
+
+.aud-fab.on {
+  background: #3b82f6;
+  color: white;
+}
+
 .mic-overlay {
   position: relative;
   z-index: 1;
