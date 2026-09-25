@@ -9,7 +9,7 @@ import { useState, useRef, useEffect } from 'react';
 
 const PHRASES = ['hola', 'chau'];
 const SAMPLES_NEEDED = 3;
-const RECORD_MS = 4000;
+const RECORD_MS = 2000;
 const SEQ_LEN = 24;
 const MATCH_THRESHOLD = 0.14;
 const COOLDOWN_MS = 3000;
@@ -217,7 +217,7 @@ export default function SignLanguage({ videoRef, cameraOn, onPhrase }: SignLangu
     recFramesRef.current = [];
     recordingRef.current = phrase;
     setRecording(phrase);
-    setStatus(`Hacé la seña de "${phrase}" por 4 segundos…`);
+    setStatus(`Hacé la seña de "${phrase}" por 2 segundos…`);
     setTimeout(() => {
       const frames = recFramesRef.current;
       recordingRef.current = null;
