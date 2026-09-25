@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, Copy, Check, History, Trash2, Video, VideoOff, Volume2, VolumeX, X } from 'lucide-react';
 import MicrophoneRecorder from '../components/MicrophoneRecorder';
 import LanguagePicker from '../components/LanguagePicker';
+import SignLanguage from '../components/SignLanguage';
 import { sameText, tailSentences } from '../components/text';
 
 interface TranscriptData {
@@ -704,6 +705,11 @@ export default function MicStudio({ sessionId = null, room = null, title = 'Tran
           liveEnabled={liveEnabled}
           onAudioChunk={handleAudioChunk}
           mutedRef={ttsSpeakingRef}
+        />
+        <SignLanguage
+          videoRef={videoRef}
+          cameraOn={cameraOn}
+          onPhrase={(text) => handleTranscript(text)}
         />
         <button
           onClick={handleToggleTts}
