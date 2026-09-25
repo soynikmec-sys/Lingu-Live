@@ -105,9 +105,16 @@ export default function Home() {
   if (loading) {
     return (
       <div className="container">
-        <div className="header">
-          <h1>🎙️ Lingo Live</h1>
-          <p>Cargando sesiones disponibles...</p>
+      <div className="header">
+        <img
+          src="/logo.jpeg"
+          alt="Lingo Live"
+          width={110}
+          height={110}
+          style={{ borderRadius: '24px', marginBottom: '1rem' }}
+        />
+        <h1>🎙️ Lingo Live</h1>
+        <p>Cargando sesiones disponibles...</p>
         </div>
         <div className="loading">Cargando...</div>
       </div>
@@ -117,8 +124,15 @@ export default function Home() {
   return (
     <div className="container">
       <div className="header">
-          <h1>🎙️ Lingo Live</h1>
-          <p>Selecciona una sesión para ver los subtítulos en tiempo real</p>
+        <img
+          src="/logo.jpeg"
+          alt="Lingo Live"
+          width={110}
+          height={110}
+          style={{ borderRadius: '24px', marginBottom: '1rem' }}
+        />
+        <h1>🎙️ Lingo Live</h1>
+        <p>Selecciona una sesión para ver los subtítulos en tiempo real</p>
         <button 
           className="mic-button"
           onClick={() => window.location.href = '/mic'}

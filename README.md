@@ -1,5 +1,7 @@
 # 🎙️ Lingo Live
 
+![Lingo Live](frontend/public/logo.jpeg)
+
 Transcripción y traducción simultánea en tiempo real para conferencias, con soporte para múltiples sesiones en paralelo.
 
 Proyecto para la **Nerdearla Vibeathon 2026** (24-25 de septiembre de 2026).
