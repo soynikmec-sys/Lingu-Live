@@ -542,7 +542,7 @@ body {
   font-size: 0.72rem;
   font-family: monospace;
   cursor: pointer;
-  max-width: 220px;
+  max-width: 340px;
   transition: background 0.2s;
 }
 

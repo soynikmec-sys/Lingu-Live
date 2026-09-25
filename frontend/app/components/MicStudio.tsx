@@ -80,9 +80,7 @@ export default function MicStudio({ sessionId = null, room = null, title = 'Tran
   const obsUrl = origin
     ? (room ? `${origin}/ver/${encodeURIComponent(room)}?overlay=1` : `${origin}/mic?overlay=1`)
     : '';
-  const obsShort = obsUrl
-    ? (room ? `ver/${room}?overlay=1` : `mic?overlay=1`)
-    : '…';
+  const obsShort = obsCopied ? '¡Copiada!' : (obsUrl ? `OBS: ${obsUrl}` : 'OBS: …');
 
   const copyObsUrl = async () => {
     if (!obsUrl) return;
@@ -658,7 +656,7 @@ export default function MicStudio({ sessionId = null, room = null, title = 'Tran
           aria-label="Copiar URL para OBS"
         >
           {obsCopied ? <Check size={13} /> : <Copy size={13} />}
-          <span>{obsCopied ? '¡Copiada!' : obsShort}</span>
+          <span>{obsShort}</span>
         </button>
         <LanguagePicker kind="speak" value={speechLang} onChange={setSpeechLang} />
         <LanguagePicker kind="target" value={targetLang} onChange={setTargetLang} />
