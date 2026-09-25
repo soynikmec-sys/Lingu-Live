@@ -270,6 +270,13 @@ export default function SignLanguage({ videoRef, cameraOn, onPhrase }: SignLangu
           <div style={{ fontWeight: 700, marginBottom: '0.4rem' }}>
             Señas demo {handSeen ? '✋' : '·'} {readyCount < PHRASES.length ? '(enseñar primero)' : '(detectando)'}
           </div>
+          <div style={{ fontSize: '0.75rem', opacity: 0.75, marginBottom: '0.3rem' }}>
+            ¿Cómo son?{' '}
+            <a href="https://xn--lenguadeseas-jhb.com.ar/saludos-en-lengua-de-senas/" target="_blank" rel="noreferrer" style={{ color: '#93c5fd' }}>
+              guía saludos LSA
+            </a>{' '}
+            · “Hola”: mano en alto, palma afuera, saludo corto.
+          </div>
           {PHRASES.map((p) => {
             const n = (templates[p] || []).length;
             return (
