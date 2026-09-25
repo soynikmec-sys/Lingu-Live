@@ -1,0 +1,12 @@
+{
+  "machine learning": "Aprendizaje automático - rama de la IA que permite a las máquinas aprender de datos",
+  "neural network": "Red neuronal - sistema de computación inspirado en redes neuronales biológicas",
+  "deep learning": "Aprendizaje profundo - subcampo del machine learning con redes neuronales profundas",
+  "natural language processing": "Procesamiento de lenguaje natural - rama de la IA que procesa texto y voz",
+  "computer vision": "Visión por computadora - campo que permite a las máquinas interpretar imágenes",
+  "reinforcement learning": "Aprendizaje por refuerzo - tipo de ML donde los agentes aprenden por recompensas",
+  "transformer": "Transformador - arquitectura de red neuronal para procesamiento secuencial",
+  "large language model": "Modelo de lenguaje grande - IA entrenada con enormes cantidades de texto",
+  "generative AI": "IA generativa - IA que puede crear nuevo contenido (texto, imágenes, audio)",
+  "fine-tuning": "Ajuste fino - proceso de adaptar un modelo pre-entrenado a una tarea específica"
+}

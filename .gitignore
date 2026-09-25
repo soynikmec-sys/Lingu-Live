@@ -1,0 +1,20 @@
+# Dependencias
+node_modules/
+
+# Build Next.js
+frontend/.next/
+frontend/out/
+
+# Secrets (nunca commitear el .env real)
+backend/.env
+frontend/.env
+
+# Logs
+*.log
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Tooling local
+.opencode/
