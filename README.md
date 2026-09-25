@@ -43,9 +43,21 @@ Proyecto para la **Nerdearla Vibeathon 2026** (24-25 de septiembre de 2026).
 |---|---|---|---|
 | Probar micrófono | `http://localhost:3000/mic` | Vos solo | Transcripción privada |
 | Transmitir | `http://localhost:3000/transmitir/room-a` | El speaker | Publica a la sala |
-| Ver | `http://localhost:3000/[sessionId]` (botón Ver en la home) | Audiencia | Subtítulos + audio dual opcional |
+| Ver | `http://localhost:3000/ver/room-a` (botón Ver en la home) | Audiencia | Subtítulos + audio dual opcional |
 
-Salas iniciales: `room-a`, `room-b`. Se pueden crear más desde la home.
+Salas iniciales: `room-a`, `room-b`. Se pueden crear más desde la home (nombre + idioma).
+
+### ⚡ Quickstart para evaluar (5 min)
+
+```bash
+git clone <url-del-repo> lingo-live && cd lingo-live
+cd backend && npm install && cp .env.example .env && npm start &
+cd ../frontend && npm install && npm run build && npm run start
+```
+
+Abrí `http://localhost:3000`, apretá **Probar micrófono**, hablá en español (modo local, $0).
+Para traducción en vivo ES→EN necesitás la API key (abajo). Para ver una sala con audiencia,
+abrí `/transmitir/room-a` en una ventana y `/ver/room-a` en otra.
 
 ---
 
@@ -67,13 +79,17 @@ El modo es **automático**, sin opciones manuales:
 
 ## 🛠️ Instalación y puesta en marcha
 
-Requisitos: **Node.js ≥ 20**. Opcional: cuenta de Google AI Studio (gratis) para el modo Live, Docker para LiveKit.
+Requisitos: **Node.js ≥ 20** y **Git**. Opcional: cuenta de Google AI Studio (gratis) para el modo Live, Docker para LiveKit.
 
 ```bash
+# 0. Clonar
+git clone <url-del-repo> lingo-live
+cd lingo-live
+
 # 1. Backend
 cd backend
 npm install
-cp .env.example .env   # completar GEMINI_API_KEY para modo Live
+cp .env.example .env   # en Windows PowerShell: Copy-Item .env.example .env
 npm start              # http://localhost:3003 (GET /health, WS /mic-stream)
 
 # 2. Frontend
@@ -86,20 +102,31 @@ npm run start          # http://localhost:3000
 powershell -NoProfile -File deploy.ps1
 ```
 
-Variables en `backend/.env` (ver `.env.example`): `GEMINI_API_KEY`, `PORT` (default 3003 en deploy),
-`SESSION_ROOMS=room-a,room-b`, `TARGET_LANGUAGES=es`, `SESSION_MODE=demo|live`, `GLOSSARY_PATH`.
+### 🔑 API key de Gemini (solo para traducción en vivo)
 
-Sin `GEMINI_API_KEY` el proyecto anda igual en modo local/demo (mismo idioma + salas de ejemplo).
+1. Entrá a [Google AI Studio](https://aistudio.google.com) → **Get API key** → creá una key (gratis).
+2. Pegala en `backend/.env` como `GEMINI_API_KEY=...` y reiniciá el backend.
+3. **Modo Live** (idioma cruzado, ej. ES→EN): necesita la key **con facturación habilitada**
+   (~$2.20/hora por sesión activa; poné un Spend Cap en AI Studio).
+   Sin facturación verás un error visible en pantalla (nunca falla en silencio).
+4. **Sin key** el proyecto anda igual: modo local $0 (mismo idioma) + salas demo.
+
+Variables en `backend/.env` (ver `.env.example`): `GEMINI_API_KEY`, `PORT` (3003),
+`SESSION_ROOMS=room-a,room-b`, `TARGET_LANGUAGES=es`, `SESSION_MODE=demo|live`, `GLOSSARY_PATH`.
 
 ---
 
 ## 📺 Subtítulos en OBS (overlay)
 
-1. Abrí la sala como viewer y copiá la URL agregando `?overlay=1`:
-   `http://localhost:3000/<sessionId>?overlay=1`
-2. En OBS: **Agregar → Fuente de navegador** → pegá la URL.
+La URL estable por nombre de sala (no se rompe al reiniciar):
+
+1. Hablá transmitiendo en `http://localhost:3000/transmitir/room-a`.
+2. En OBS: **Agregar → Fuente de navegador** con esta URL:
+   `http://localhost:3000/ver/room-a?overlay=1`
+   (también vale `/transmitir/room-a?overlay=1` y `/mic?overlay=1`).
 3. Tamaño sugerido: **1920×250**, posicionada abajo (franja inferior).
-4. Salen los subtítulos en cajita negra (traducción grande + original chico), actualizándose solos, con fondo transparente.
+4. Salen los subtítulos en cajita negra (traducción grande + original chico), actualizándose solos, con fondo transparente. En silencio se ve transparente (normal).
+5. Si ves la página completa en vez de la cajita: te falta el `?overlay=1` al final, o clic derecho en la fuente → Actualizar (OBS cachea).
 
 ---
 
