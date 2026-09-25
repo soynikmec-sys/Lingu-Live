@@ -16,8 +16,17 @@ export async function registerSessionRoutes(fastify) {
       reply.code(404);
       return { error: 'Sesión no encontrada' };
     }
-    
-    return session;
+
+    // DTO saneado (ver POST /sessions).
+    return {
+      id: session.id,
+      room: session.room,
+      status: session.status,
+      viewers: session.viewers,
+      targetLanguage: session.targetLanguage,
+      hasBroadcaster: session.hasBroadcaster === true,
+      live: session.status === 'active' && session.hasBroadcaster === true
+    };
   });
 
   // Obtener (o crear) la sesión activa de una room por nombre.
@@ -51,7 +60,16 @@ export async function registerSessionRoutes(fastify) {
     }
     
     const session = await sessionManager.createSession(room, targetLanguage || 'es');
-    return session;
+    // DTO saneado: la sesión cruda tiene Set/Timeouts/clientes (circulares).
+    return {
+      id: session.id,
+      room: session.room,
+      status: session.status,
+      viewers: session.viewers,
+      targetLanguage: session.targetLanguage,
+      hasBroadcaster: session.hasBroadcaster === true,
+      live: session.status === 'active' && session.hasBroadcaster === true
+    };
   });
 
   // Cerrar una sesión

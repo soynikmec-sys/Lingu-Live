@@ -73,6 +73,34 @@ export default function MicStudio({ sessionId = null, title = 'Transcripción de
   ttsAutoRef.current = ttsAuto;
   const ttsSpeakingRef = useRef(false);
   const ttsCooldownRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Reproductor del MP3 de edge-tts (voz masculina HD). Si falla, se usa
+  // la voz del sistema como fallback.
+  const ttsAudioRef = useRef<HTMLAudioElement | null>(null);
+  const ttsUrlRef = useRef<string | null>(null);
+
+  const stopTtsAudio = () => {
+    try {
+      ttsAudioRef.current?.pause();
+    } catch { /* ignorar */ }
+    ttsAudioRef.current = null;
+    if (ttsUrlRef.current) {
+      URL.revokeObjectURL(ttsUrlRef.current);
+      ttsUrlRef.current = null;
+    }
+    if (ttsCooldownRef.current) clearTimeout(ttsCooldownRef.current);
+    ttsSpeakingRef.current = false;
+  };
+
+  const markSpeaking = () => {
+    ttsSpeakingRef.current = true;
+  };
+
+  const markSilent = () => {
+    if (ttsCooldownRef.current) clearTimeout(ttsCooldownRef.current);
+    ttsCooldownRef.current = setTimeout(() => {
+      ttsSpeakingRef.current = false;
+    }, 800);
+  };
 
   const pickVoice = (lang: string) => {
     try {
@@ -98,13 +126,8 @@ export default function MicStudio({ sessionId = null, title = 'Transcripción de
       } else {
         u.lang = lang;
       }
-      ttsSpeakingRef.current = true;
-      u.onend = () => {
-        if (ttsCooldownRef.current) clearTimeout(ttsCooldownRef.current);
-        ttsCooldownRef.current = setTimeout(() => {
-          ttsSpeakingRef.current = false;
-        }, 800);
-      };
+      markSpeaking();
+      u.onend = markSilent;
       u.onerror = () => {
         ttsSpeakingRef.current = false;
       };
@@ -115,11 +138,40 @@ export default function MicStudio({ sessionId = null, title = 'Transcripción de
     }
   };
 
+  // Voz HD masculina vía backend (edge-tts). Si falla, fallback a sistema.
+  const speakHD = async (text: string, lang: string) => {
+    const backendHttp = process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://localhost:3003';
+    try {
+      stopTtsAudio();
+      const res = await fetch(`${backendHttp}/tts`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, lang }),
+      });
+      if (!res.ok) throw new Error(`TTS ${res.status}`);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      ttsUrlRef.current = url;
+      const audio = new Audio(url);
+      ttsAudioRef.current = audio;
+      markSpeaking();
+      audio.onended = markSilent;
+      audio.onerror = () => {
+        console.warn('⚠️ TTS HD falló, usando voz del sistema');
+        speak(text, lang);
+      };
+      await audio.play();
+    } catch (e) {
+      console.warn('⚠️ TTS HD no disponible, usando voz del sistema:', e);
+      speak(text, lang);
+    }
+  };
+
   const maybeSpeak = (data: TranscriptData) => {
     if (!ttsAutoRef.current) return;
     const text = (data.translatedText ?? '').trim();
     if (!text) return;
-    speak(text, data.language || targetLangRef.current);
+    speakHD(text, data.language || targetLangRef.current);
   };
 
   const handleToggleTts = () => {
@@ -127,8 +179,7 @@ export default function MicStudio({ sessionId = null, title = 'Transcripción de
       try {
         window.speechSynthesis?.cancel();
       } catch { /* ignorar */ }
-      if (ttsCooldownRef.current) clearTimeout(ttsCooldownRef.current);
-      ttsSpeakingRef.current = false;
+      stopTtsAudio();
     }
     setTtsAuto(!ttsAuto);
   };
@@ -139,6 +190,7 @@ export default function MicStudio({ sessionId = null, title = 'Transcripción de
       window.speechSynthesis?.getVoices();
     } catch { /* ignorar */ }
     return () => {
+      stopTtsAudio();
       try {
         window.speechSynthesis?.cancel();
       } catch { /* ignorar */ }

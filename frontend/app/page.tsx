@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import LanguagePicker from './components/LanguagePicker';
 
 interface Session {
   id: string;
@@ -12,10 +13,19 @@ interface Session {
   live?: boolean;
 }
 
+const slugify = (s: string) =>
+  s.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^a-z0-9-_]/g, '').slice(0, 40);
+
 export default function Home() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // Crear sala
+  const [showCreate, setShowCreate] = useState(false);
+  const [newRoom, setNewRoom] = useState('');
+  const [newLang, setNewLang] = useState('es');
+  const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchSessions();
@@ -39,6 +49,38 @@ export default function Home() {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const createRoom = async () => {
+    const room = slugify(newRoom);
+    if (!room) {
+      setCreateError('Poné un nombre para la sala.');
+      return;
+    }
+    if (sessions.some((s) => s.room === room)) {
+      setCreateError('Ya existe una sala con ese nombre.');
+      return;
+    }
+    setCreating(true);
+    setCreateError(null);
+    try {
+      const backendHttp = process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://localhost:3003';
+      const response = await fetch(`${backendHttp}/sessions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ room, targetLanguage: newLang }),
+      });
+      if (!response.ok) throw new Error('No se pudo crear la sala');
+      setNewRoom('');
+      setNewLang('es');
+      setShowCreate(false);
+      await fetchSessions();
+    } catch (err) {
+      setCreateError('No se pudo crear la sala. Revisá la conexión.');
+      console.error(err);
+    } finally {
+      setCreating(false);
     }
   };
 
@@ -94,7 +136,65 @@ export default function Home() {
         >
           🎤 Transcribir desde Micrófono
         </button>
+        <button
+          className="mic-button"
+          onClick={() => setShowCreate(!showCreate)}
+          style={{
+            background: 'transparent',
+            color: 'white',
+            border: '1px solid white',
+            padding: '0.75rem 1.5rem',
+            borderRadius: '8px',
+            fontSize: '1rem',
+            cursor: 'pointer' as const,
+            marginTop: '1rem',
+            marginLeft: '0.5rem',
+            fontWeight: '600'
+          }}
+        >
+          ➕ Crear sala
+        </button>
       </div>
+
+      {showCreate && (
+        <div className="session-card" style={{ cursor: 'default', marginBottom: '1.5rem' }}>
+          <h3>Nueva sala</h3>
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap', marginTop: '0.75rem' }}>
+            <input
+              value={newRoom}
+              onChange={(e) => setNewRoom(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') createRoom(); }}
+              placeholder="Nombre (ej. escenario-c)"
+              aria-label="Nombre de la sala"
+              style={{
+                flex: 1,
+                minWidth: '180px',
+                padding: '0.6rem 0.9rem',
+                borderRadius: '8px',
+                border: '1px solid #ddd',
+                fontSize: '1rem'
+              }}
+            />
+            <LanguagePicker kind="target" value={newLang} onChange={setNewLang} />
+            <button
+              className="back-button"
+              style={{ marginBottom: 0 }}
+              onClick={createRoom}
+              disabled={creating}
+            >
+              {creating ? 'Creando…' : 'Crear'}
+            </button>
+          </div>
+          {createError && (
+            <div className="error" style={{ marginTop: '0.75rem' }}>
+              {createError}
+            </div>
+          )}
+          <div className="info" style={{ marginTop: '0.5rem' }}>
+            <div className="info-item">Las salas creadas viven en memoria: se pierden si el servidor reinicia.</div>
+          </div>
+        </div>
+      )}
 
       {error && (
         <div className="error">
@@ -133,10 +233,12 @@ export default function Home() {
               </button>
               <button
                 className="back-button"
-                style={{ marginBottom: 0, flex: 1 }}
+                style={{ marginBottom: 0, flex: 1, opacity: session.live ? 0.5 : 1 }}
                 onClick={() => window.location.href = `/transmitir/${encodeURIComponent(session.room)}`}
+                disabled={session.live === true}
+                title={session.live ? 'Ya hay alguien transmitiendo en esta sala' : 'Transmitir en esta sala'}
               >
-                🎙️ Transmitir
+                {session.live ? '🔴 En vivo' : '🎙️ Transmitir'}
               </button>
             </div>
           </div>

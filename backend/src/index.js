@@ -5,6 +5,7 @@ import websocket from '@fastify/websocket';
 import { registerSessionRoutes } from './sessions/routes.js';
 import { registerWebSocketRoutes } from './ws/routes.js';
 import { registerMicrophoneRoutes } from './mic/routes.js';
+import { registerTtsRoutes } from './tts/routes.js';
 import { registerBroadcastRoutes } from './rooms/broadcast.js';
 import { sessionManager } from './sessions/manager.js';
 
@@ -25,6 +26,7 @@ fastify.register(websocket);
 fastify.register(registerSessionRoutes);
 fastify.register(registerWebSocketRoutes);
 fastify.register(registerMicrophoneRoutes);
+fastify.register(registerTtsRoutes);
 fastify.register(registerBroadcastRoutes);
 
 // Ruta de health check
