@@ -416,6 +416,20 @@ export default function MicStudio({ sessionId = null, title = 'Transcripción de
     setTranscripts(prev => [...prev, entry]);
     setPreviewOrig('');
     setPreviewTrans('');
+    // Transmitiendo en mismo idioma: publicar el original a la sala
+    // (gratis, sin Gemini) para que viewers/OBS lo vean. En /mic no hay
+    // sala y no se manda nada.
+    if (sessionId && wsRef.current?.readyState === WebSocket.OPEN) {
+      try {
+        wsRef.current.send(JSON.stringify({
+          type: 'publish',
+          text,
+          targetLang: targetLangRef.current
+        }));
+      } catch (e) {
+        console.error('Error publicando original:', e);
+      }
+    }
     maybeSpeak(entry);
   };
 

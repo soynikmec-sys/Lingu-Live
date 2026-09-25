@@ -137,6 +137,18 @@ export async function registerBroadcastRoutes(fastify) {
               try { await liveSession?.close(); } catch { /* ignorar */ }
               liveSession = null;
             }
+          } else if (data.type === 'publish' && data.text) {
+            // Mismo-idioma: el broadcaster ya lo resolvió en local (gratis,
+            // sin Gemini). Solo se republica tal cual a los viewers.
+            sessionManager.broadcastToSession(sessionId, {
+              type: 'transcript',
+              interim: false,
+              originalText: data.text,
+              translatedText: data.text,
+              language: data.targetLang || session.targetLanguage,
+              timestamp: new Date().toISOString(),
+              sessionId
+            });
           } else if (data.type === 'text') {
             if (microphoneProcessor.initPromise) {
               await microphoneProcessor.initPromise;
