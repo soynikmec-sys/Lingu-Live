@@ -37,6 +37,34 @@ body {
   opacity: 0.9;
 }
 
+/* Título compacto del estudio: arriba a la izquierda, junto al volver */
+.mic-titlebar {
+  position: fixed;
+  top: 1rem;
+  left: 4.5rem;
+  right: 12rem;
+  z-index: 3;
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  pointer-events: none;
+}
+
+.mic-title {
+  color: white;
+  font-size: 1rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mic-status {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
 .session-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));

@@ -458,6 +458,29 @@ export default function MicStudio({ sessionId = null, title = 'Transcripción de
     if (sameLanguageRef.current) {
       // Sin backend: el "blanco" es el mismo texto, en vivo y gratis.
       setPreviewTrans(text);
+      // Transmitiendo: publicar lo parcial a la sala (throttle 800ms +
+      // trailing) para que la audiencia lo vea en vivo. $0, sin Gemini.
+      if (sessionId && wsRef.current?.readyState === WebSocket.OPEN) {
+        const sendPub = () => {
+          lastInterimSendRef.current = Date.now();
+          try {
+            wsRef.current?.send(JSON.stringify({
+              type: 'publish',
+              text: lastInterimTextRef.current,
+              interim: true,
+              targetLang: targetLangRef.current
+            }));
+          } catch (e) {
+            console.error('Error publicando interim:', e);
+          }
+        };
+        if (Date.now() - lastInterimSendRef.current > 800) {
+          sendPub();
+        } else {
+          if (interimTimerRef.current) clearTimeout(interimTimerRef.current);
+          interimTimerRef.current = setTimeout(sendPub, 500);
+        }
+      }
       return;
     }
     // Cross-idioma: el blanco muestra "…" hasta que llegue el final
@@ -605,11 +628,9 @@ export default function MicStudio({ sessionId = null, title = 'Transcripción de
         </button>
       </div>
 
-      <div className="header">
-        <h1>{title}</h1>
-        <p>
-          {connected ? 'Conectado' : 'Conectando...'}
-        </p>
+      <div className="mic-titlebar">
+        <span className="mic-title">{title}</span>
+        <span className="mic-status">{connected ? 'Conectado' : 'Conectando...'}</span>
       </div>
 
       {error && (

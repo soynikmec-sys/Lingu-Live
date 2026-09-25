@@ -140,9 +140,10 @@ export async function registerBroadcastRoutes(fastify) {
           } else if (data.type === 'publish' && data.text) {
             // Mismo-idioma: el broadcaster ya lo resolvió en local (gratis,
             // sin Gemini). Solo se republica tal cual a los viewers.
+            // interim=true = provisorio en vivo (no va al historial).
             sessionManager.broadcastToSession(sessionId, {
               type: 'transcript',
-              interim: false,
+              interim: data.interim === true,
               originalText: data.text,
               translatedText: data.text,
               language: data.targetLang || session.targetLanguage,
