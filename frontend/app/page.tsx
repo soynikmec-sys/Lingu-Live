@@ -109,11 +109,10 @@ export default function Home() {
         <img
           src="/logo.jpeg"
           alt="Lingo Live"
-          width={110}
-          height={110}
-          style={{ borderRadius: '24px', marginBottom: '1rem' }}
+          width={150}
+          height={150}
+          style={{ borderRadius: '28px', marginBottom: '1rem' }}
         />
-        <h1>🎙️ Lingo Live</h1>
         <p>Cargando sesiones disponibles...</p>
         </div>
         <div className="loading">Cargando...</div>
@@ -127,11 +126,10 @@ export default function Home() {
         <img
           src="/logo.jpeg"
           alt="Lingo Live"
-          width={110}
-          height={110}
-          style={{ borderRadius: '24px', marginBottom: '1rem' }}
+          width={150}
+          height={150}
+          style={{ borderRadius: '28px', marginBottom: '1rem' }}
         />
-        <h1>🎙️ Lingo Live</h1>
         <p>Selecciona una sesión para ver los subtítulos en tiempo real</p>
         <button 
           className="mic-button"
