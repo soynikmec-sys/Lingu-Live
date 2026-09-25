@@ -106,7 +106,7 @@ export default function Home() {
     return (
       <div className="container">
         <div className="header">
-          <h1>🎙️ LiveCast Translate</h1>
+          <h1>🎙️ Lingo Live</h1>
           <p>Cargando sesiones disponibles...</p>
         </div>
         <div className="loading">Cargando...</div>
@@ -117,8 +117,8 @@ export default function Home() {
   return (
     <div className="container">
       <div className="header">
-        <h1>🎙️ LiveCast Translate</h1>
-        <p>Selecciona una sesión para ver los subtítulos en tiempo real</p>
+          <h1>🎙️ Lingo Live</h1>
+          <p>Selecciona una sesión para ver los subtítulos en tiempo real</p>
         <button 
           className="mic-button"
           onClick={() => window.location.href = '/mic'}

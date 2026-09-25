@@ -1,7 +1,7 @@
 {
-  "name": "livecast-translate-backend",
+  "name": "lingo-live-backend",
   "version": "1.0.0",
-  "description": "Backend para LiveCast Translate - Transcripción y traducción en tiempo real",
+  "description": "Backend para Lingo Live - Transcripción y traducción en tiempo real",
   "main": "src/index.js",
   "type": "module",
   "scripts": {

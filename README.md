@@ -1,4 +1,4 @@
-# 🎙️ LiveCast Translate — lingu-connect
+# 🎙️ Lingo Live
 
 Transcripción y traducción simultánea en tiempo real para conferencias, con soporte para múltiples sesiones en paralelo.
 

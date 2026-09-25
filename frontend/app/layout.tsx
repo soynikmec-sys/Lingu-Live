@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'LiveCast Translate - Subtítulos en vivo',
+  title: 'Lingo Live - Subtítulos en vivo',
   description: 'Transcripción y traducción simultánea en tiempo real para conferencias',
 };
 

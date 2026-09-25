@@ -1,7 +1,7 @@
 {
-  "name": "livecast-translate-frontend",
+  "name": "lingo-live-frontend",
   "version": "1.0.0",
-  "description": "Frontend para LiveCast Translate - Vista de audiencia",
+  "description": "Frontend para Lingo Live - Vista de audiencia",
   "type": "module",
   "scripts": {
     "dev": "next dev",

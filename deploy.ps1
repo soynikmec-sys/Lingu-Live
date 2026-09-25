@@ -1,4 +1,4 @@
-# Deploy local LiveCast: build frontend + reinicio de frontend y backend.
+# Deploy local Lingo Live: build frontend + reinicio de frontend y backend.
 # Uso: powershell -NoProfile -File deploy.ps1
 # Pensado para lanzarse oculto en segundo plano. Progreso en el log.
 
