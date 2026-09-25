@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { ArrowLeft, CircleHelp, History, Trash2, Video, VideoOff, Volume2, VolumeX, X } from 'lucide-react';
+import { ArrowLeft, History, Trash2, Video, VideoOff, Volume2, VolumeX, X } from 'lucide-react';
 import MicrophoneRecorder from '../components/MicrophoneRecorder';
 import LanguagePicker from '../components/LanguagePicker';
 
@@ -375,11 +375,6 @@ export default function MicStudio({ sessionId = null, title = 'Transcripción de
   sameLanguageRef.current = sameLanguage;
   // Ruteo automático sin pills: cruzado en /mic = Live; en salas = texto.
   const liveEnabled = !sameLanguage && !sessionId;
-  const effectiveMode = sameLanguage ? 'local' : liveEnabled ? 'live' : 'text';
-  const modeCostLabel =
-    effectiveMode === 'local' ? 'Local · $0'
-    : effectiveMode === 'live' ? 'Live · ~$2.20/h'
-    : 'Texto · gratis';
 
   const handleAudioChunk = (base64Pcm: string) => {
     // Anti-eco: mientras el TTS habla no se manda audio (ni cooldown).
@@ -648,17 +643,6 @@ export default function MicStudio({ sessionId = null, title = 'Transcripción de
       >
         {cameraOn ? <Video size={26} /> : <VideoOff size={26} />}
       </button>
-
-      <div className="mode-pills" role="group" aria-label="Modo de traducción">
-        <span className="mode-cost">{modeCostLabel}</span>
-        <button
-          className="help-badge"
-          aria-label="Cómo funciona la traducción"
-          data-tip="Automático: mismo idioma = local gratis sin internet de IA. Idioma cruzado en el mic = Live (~$2.20/h, necesita API key con facturación). Si el Live se cae, se muestra error y se frena."
-        >
-          <CircleHelp size={22} />
-        </button>
-      </div>
 
       <div className="microphone-controls">
         <MicrophoneRecorder
