@@ -2,7 +2,7 @@
 
 import MicStudio from '../components/MicStudio';
 
-// Mic standalone: transcribe sin publicar en ninguna sala
+// Mic standalone: probar el micrófono en privado (no publica a ninguna sala)
 export default function MicrophonePage() {
-  return <MicStudio />;
+  return <MicStudio title="Probar micrófono" />;
 }

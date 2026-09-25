@@ -134,15 +134,15 @@ export default function Home() {
             fontWeight: '600'
           }}
         >
-          🎤 Transcribir desde Micrófono
+          🎤 Probar micrófono
         </button>
         <button
           className="mic-button"
           onClick={() => setShowCreate(!showCreate)}
           style={{
-            background: 'transparent',
-            color: 'white',
-            border: '1px solid white',
+            background: 'white',
+            color: '#667eea',
+            border: 'none',
             padding: '0.75rem 1.5rem',
             borderRadius: '8px',
             fontSize: '1rem',
