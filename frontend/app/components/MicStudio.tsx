@@ -65,6 +65,25 @@ export default function MicStudio({ sessionId = null, title = 'Transcripción de
   // Dock de transcripción: autoscroll abajo cuando llega texto nuevo,
   // sin barra de scroll visible.
   const dockRef = useRef<HTMLDivElement | null>(null);
+  // Overlay para OBS (?overlay=1): solo subtítulo en cajita negra, sin
+  // cámara ni controles. Vale para /mic y /transmitir (el anfitrión lo
+  // usa directo sin abrir el viewer).
+  const [overlay, setOverlay] = useState(false);
+
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('overlay') === '1') {
+        setOverlay(true);
+        document.body.style.background = 'transparent';
+      }
+    } catch { /* ignorar */ }
+    return () => {
+      try {
+        document.body.style.background = '';
+      } catch { /* ignorar */ }
+    };
+  }, []);
   // Lectura en voz alta (TTS del navegador, gratis). Opcional: al prender,
   // cada final commiteado se lee en su idioma. Anti-eco: mientras habla
   // se mutea la entrada (+800ms cooldown) y jamás se leen interim.
@@ -511,9 +530,31 @@ export default function MicStudio({ sessionId = null, title = 'Transcripción de
     window.location.href = backHref;
   };
 
+  // Overlay OBS (anfitrión o mic): cajita negra con lo actual, nada más.
+  if (overlay) {
+    const current = previewTrans || previewOrig
+      ? { translatedText: previewTrans, originalText: previewOrig }
+      : latest;
+    return (
+      <div className="overlay-root">
+        {current && (current.translatedText || current.originalText) ? (
+          <div className="overlay-box">
+            <div className="overlay-main">
+              {tailSentences(current.translatedText || current.originalText || '')}
+            </div>
+            {current.originalText &&
+              current.originalText.trim() !== (current.translatedText ?? '').trim() && (
+                <div className="overlay-original">{tailSentences(current.originalText)}</div>
+              )}
+          </div>
+        ) : null}
+      </div>
+    );
+  }
+
   return (
     <>
-    {cameraOn && (
+    {cameraOn && !overlay && (
       <>
         <video
           ref={videoRef}
