@@ -285,6 +285,7 @@ export default function SignLanguage({ videoRef, cameraOn, onPhrase }: SignLangu
                 <button
                   onClick={() => startRecording(p)}
                   disabled={recording !== null}
+                  title={n >= SAMPLES_NEEDED ? 'Vuelve a grabar (reemplaza el ejemplo más viejo)' : 'Grabar ejemplo'}
                   style={{
                     background: recording === p ? '#ef4444' : 'white',
                     color: recording === p ? 'white' : '#667eea',
@@ -296,7 +297,7 @@ export default function SignLanguage({ videoRef, cameraOn, onPhrase }: SignLangu
                     fontWeight: 700,
                   }}
                 >
-                  {recording === p ? '●' : 'Grabar'}
+                  {recording === p ? '●' : n >= SAMPLES_NEEDED ? 'Regrabar' : 'Grabar'}
                 </button>
               </div>
             );
