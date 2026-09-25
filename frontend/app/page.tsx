@@ -227,7 +227,7 @@ export default function Home() {
               <button
                 className="back-button"
                 style={{ marginBottom: 0, flex: 1 }}
-                onClick={() => window.location.href = `/${session.id}`}
+                onClick={() => window.location.href = `/ver/${encodeURIComponent(session.room)}`}
               >
                 Ver
               </button>
