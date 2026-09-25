@@ -20,6 +20,16 @@ const WASM_URL = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/w
 
 type Seq = number[][]; // frames x 63 (21 landmarks xyz normalizados)
 
+// Topología del esqueleto (MediaPipe Hands, 21 puntos)
+const HAND_CONNECTIONS: Array<[number, number]> = [
+  [0, 1], [1, 2], [2, 3], [3, 4], // pulgar
+  [0, 5], [5, 6], [6, 7], [7, 8], // índice
+  [5, 9], [9, 10], [10, 11], [11, 12], // medio
+  [9, 13], [13, 14], [14, 15], [15, 16], // anular
+  [13, 17], [17, 18], [18, 19], [19, 20], // meñique
+  [0, 17], // base palma
+];
+
 // Invariante a posición y tamaño: relativo a muñeca, escala por dedo medio.
 function normalize(lm: any[]): number[] {
   const w = lm[0];
@@ -82,6 +92,7 @@ export default function SignLanguage({ videoRef, cameraOn, onPhrase }: SignLangu
   const [recording, setRecording] = useState<string | null>(null);
 
   const landmarkerRef = useRef<any>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const windowRef = useRef<number[][]>([]);
   const lastHandRef = useRef(0);
   const recFramesRef = useRef<number[][]>([]);
@@ -123,11 +134,52 @@ export default function SignLanguage({ videoRef, cameraOn, onPhrase }: SignLangu
     return lm;
   };
 
+  // Dibuja el esqueleto espejado (igual que el video con scaleX(-1)).
+  const drawSkeleton = (hand: any) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    if (canvas.width !== window.innerWidth || canvas.height !== window.innerHeight) {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (!hand) return;
+    const px = (p: any): [number, number] => [
+      canvas.width - p.x * canvas.width, // espejo horizontal
+      p.y * canvas.height,
+    ];
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = '#00FF88';
+    for (const [a, b] of HAND_CONNECTIONS) {
+      const [x1, y1] = px(hand[a]);
+      const [x2, y2] = px(hand[b]);
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+    }
+    ctx.fillStyle = '#FF4D6D';
+    for (const p of hand) {
+      const [x, y] = px(p);
+      ctx.beginPath();
+      ctx.arc(x, y, 5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  };
+
   const toggle = async () => {
     if (on) {
       setOn(false);
       setRecording(null);
       recordingRef.current = null;
+      windowRef.current = [];
+      // Limpiar el dibujito al apagar
+      try {
+        const c = canvasRef.current;
+        c?.getContext('2d')?.clearRect(0, 0, c.width, c.height);
+      } catch { /* ignorar */ }
       return;
     }
     if (!cameraOn) {
@@ -161,6 +213,7 @@ export default function SignLanguage({ videoRef, cameraOn, onPhrase }: SignLangu
         if (!video || !lm || video.readyState < 2) return;
         const res = lm.detectForVideo(video, performance.now());
         const hand = res?.landmarks?.[0];
+        drawSkeleton(hand);
         const now = Date.now();
         if (hand) {
           lastHandRef.current = now;
@@ -242,6 +295,19 @@ export default function SignLanguage({ videoRef, cameraOn, onPhrase }: SignLangu
 
   return (
     <>
+      {on && (
+        <canvas
+          ref={canvasRef}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            width: '100vw',
+            height: '100vh',
+            zIndex: 1,
+            pointerEvents: 'none',
+          }}
+        />
+      )}
       <button
         onClick={toggle}
         className={`tts-fab ${on ? 'on' : 'off'}`}
